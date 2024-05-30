@@ -1,0 +1,15 @@
+---
+# tasks file for roles/launch_app
+- name: Pull the API Image
+  docker_image:
+    name: cjassey/tp-devops-simple-api-backend
+    tag: latest
+    source: pull
+
+- name: Run API
+  docker_container:
+    name: simple-api-container-student2
+    image: cjassey/tp-devops-simple-api-backend:latest
+    networks: 
+      - name: "app-network"
+    state: started

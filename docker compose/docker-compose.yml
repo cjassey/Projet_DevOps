@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+  backend:
+    build:
+      context: "C:\Users\Dell\OneDrive - Fondation EPF\Documents\4A semestre 2 EPF\DevOps\backend api\simple-api-student-main"
+    container_name: "simple-api-container-student"
+    networks:
+      - app-network
+    depends_on:
+      - database
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://mypostgres:5432/db
+      - SPRING_DATASOURCE_USERNAME=usr
+      - SPRING_DATASOURCE_PASSWORD=pwd
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+
+  database:
+    build:
+      context: "C:\Users\Dell\OneDrive - Fondation EPF\Documents\4A semestre 2 EPF\DevOps\postgres"
+    container_name: "mypostgres"
+    networks:
+      - app-network
+    environment:
+      - POSTGRES_DB=db
+      - POSTGRES_USER=usr
+      - POSTGRES_PASSWORD=pwd
+
+  httpd:
+    build:
+      context: "C:\Users\Dell\OneDrive - Fondation EPF\Documents\4A semestre 2 EPF\DevOps\http"
+    ports:
+      - "82:80"
+    networks:
+      - app-network
+    depends_on:
+      - backend
+      - database
+
+networks:
+  app-network:

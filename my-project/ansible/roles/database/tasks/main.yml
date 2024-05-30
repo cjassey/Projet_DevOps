@@ -1,0 +1,15 @@
+---
+# tasks file for roles/database
+- name: Pull the BDD image
+  docker_image:
+    name: cjassey/tp-devops-simple-api-database
+    tag: latest
+    source: pull
+
+- name: Run BDD
+  docker_container:
+    state: started
+    name: mypostgres
+    image: cjassey/tp-devops-simple-api-database
+    networks: 
+      - name: "app-network"

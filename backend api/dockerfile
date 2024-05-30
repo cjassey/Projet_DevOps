@@ -1,0 +1,11 @@
+# Utiliser l'image openjdk pour exécuter un environnement Java runtime
+FROM openjdk:22-rc-oraclelinux8
+
+# Créer un répertoire de travail
+WORKDIR /app
+
+# Copier le fichier .class compilé dans le conteneur
+COPY Main.class /app
+
+# Exécuter l'application Java
+CMD ["java", "Main"]
