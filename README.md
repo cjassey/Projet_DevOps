@@ -365,7 +365,6 @@ docker logs my-httpd-container
 ```
 
 #### Reverse Proxy
-
 **1. Retrieve the default configuration from the running container:**
 
 We can use `docker exec` to retrieve the default configuration file from the running container at `/usr/local/apache2/conf/httpd.conf`.

@@ -3,7 +3,7 @@ version: '3.7'
 services:
   backend:
     build:
-      context: "C:\\Users\\Clément\\OneDrive - Fondation EPF\\Documents\\4A\\DevOps-main\\backend api\\simple-api-student-main"
+      context: "C:\\Users\\Clément\\OneDrive - Fondation EPF\\4A\\Devops-main\\backend api\\simple-api-student-main"
     container_name: "simple-api-container-student2"
     networks:
       - app-network
@@ -18,7 +18,7 @@ services:
 
   database:
     build:
-      context: "C:\\Users\\Clément\\OneDrive - Fondation EPF\\Documents\\4A\\DevOps-main\\postgres"
+      context: "C:\\Users\\Clément\\OneDrive - Fondation EPF\\4A\\Devops-main\\postgres"
     container_name: "mypostgres2"
     networks:
       - app-network
@@ -29,7 +29,7 @@ services:
 
   httpd:
     build:
-      context: "C:\\Users\\Clément\\OneDrive - Fondation EPF\\Documents\\4A\\Devops-main\\http"
+      context: "C:\\Users\\Clément\\OneDrive - Fondation EPF\\4A\\Devops-main\\http"
     ports:
       - "82:80"
     networks:
