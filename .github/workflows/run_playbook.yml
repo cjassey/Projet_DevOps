@@ -25,7 +25,7 @@ jobs:
       run: |
         mkdir -p ~/.ssh
         ssh-keyscan -H clement.jassey.takima.cloud >> ~/.ssh/known_hosts
-
+        
         sudo apt-get install -y ansible
     - name: Set up Ansible
       run: |
