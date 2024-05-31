@@ -46,7 +46,7 @@ docker network create app-network
 Run a container from the image you just built. Use the following command to start the container and bind a port on your host to the container's port 5432:
 
 ```sh
-docker run --name mypostgres -p 5432:5432 -d --network app-network my_postgres
+docker run --name myPostgres -p 5432:5432 -d --network app-network my_postgres
 ```
 
 To verify that the container is running, use:
@@ -59,7 +59,7 @@ You should see output similar to this:
 
 ```
 CONTAINER ID   IMAGE         COMMAND                  CREATED              STATUS              PORTS                  NAMES
-971af71c88a0   my_postgres   "docker-entrypoint.s…"   About a minute ago   Up About a minute   0.0.0.0:5432->5432/tcp mypostgres
+0e69fce54a49   my_postgres   "docker-entrypoint.s…"   About a minute ago   Up About a minute   0.0.0.0:5432->5432/tcp myPostgres
 ```
 
 ### 5. Run the Adminer Container
@@ -113,7 +113,7 @@ When rerun, it deletes the files because they are not permanent.
 To persist data and ensure it is not lost when the container is removed, use volumes. This will map a directory on your host machine to the container:
 
 ```sh
-docker run --name mypostgres -d --network app-network -v ./data:/docker-entrypoint-initdb.d my_postgres
+docker run --name myPostgres -d --network app-network -v ./data:/docker-entrypoint-initdb.d my_postgres
 ```
 
 ### 8. Verify SQL Files in Container
@@ -172,7 +172,7 @@ public class Main {
 ```
 
 **2. Compilation avec la version Java cible:** `javac Main.java`.
-Si besoin il faut réinstaller java avec une version plus récente. Dans mon cas, java avait du mal à se mettre sur mon pc.
+Comme Java n'est pas installé sur mon ordinateur je n'ai pas pu éxecuter la commande javac pour compiler mon fichier java. Ce qui rend encore plus compréhensible l'utilisation d'un docker pour utiliser java.
 
 **3. Création du Dockerfile:**
 
@@ -190,7 +190,6 @@ COPY Main.class /app
 CMD ["java", "Main"]
 ```
 
-**Explication:** Dans cette étape, nous avons écrit une classe Java simple qui affiche "Hello World!" sur la console. Ensuite, nous l'avons compilée en utilisant le compilateur Java (`javac`) pour générer un fichier de classe exécutable. Ensuite, nous avons créé un Dockerfile qui utilise une image OpenJDK pour exécuter notre application Java Hello World dans un conteneur Docker.
 
 **4. Construction de l'image Docker:**
 
@@ -204,7 +203,6 @@ docker build -t java-hello-world .
 docker run --name java-hello-world-container --network app-network java-hello-world
 ```
 
-**Explication:** Nous avons construit une image Docker à partir du Dockerfile et ensuite exécuté un conteneur Docker à partir de cette image. Le message "Hello World!" devrait être affiché dans la sortie de la console.
 
 #### Étape 2: Construction d'une Application Spring Boot avec une API Simple
 
@@ -257,8 +255,10 @@ COPY --from=myapp-build $MYAPP_HOME/target/*.jar $MYAPP_HOME/myapp.jar
 
 ENTRYPOINT java -jar myapp.jar
 ```
+###1-2 Why do we need a multistage build? And explain each step of this dockerfile.
+Les constructions multistades dans Docker sont utilisées pour optimiser la taille de l'image Docker finale. Cela implique de définir plusieurs étapes de construction dans un seul Dockerfile, chacune avec son propre ensemble d'instructions et d'environnement. Ces étapes permettent de séparer différentes phases du processus de construction d'une application, telles que la compilation du code, l'exécution des tests et l'emballage de l'application, en étapes distinctes. Chaque étape peut partir d'une image de base différente et copier uniquement les fichiers nécessaires des étapes précédentes, réduisant ainsi la taille de l'image finale en excluant les dépendances de construction et les artefacts inutiles.
 
-**Explication:** Dans ce Dockerfile, nous utilisons une image Maven pour compiler notre application Spring Boot. Nous copions d'abord le fichier `pom.xml` et le répertoire `src` contenant notre code source. Ensuite, nous exécutons la commande Maven `mvn package` pour construire le jar exécutable de notre application. Enfin, nous utilisons une image Amazon Corretto pour exécuter notre application Spring Boot.
+**Explication:** Dans ce DockerFile, la première étape utilise une image Maven pour construire l'application Java, puis la deuxième étape utilise une image Amazon Corretto JDK pour exécuter l'application, en copiant le fichier JAR généré à partir de l'étape précédente.
 
 **4. Construction de l'image Docker:**
 
@@ -296,8 +296,6 @@ Nous avons exécuté le conteneur Docker avec les modifications apportées à la
 ]
 ```
 
-**Explication:** Pour que notre application Spring Boot puisse accéder à la base de données, nous devons configurer les paramètres de connexion dans le fichier `application.yml`. Ensuite, en exécutant le conteneur Docker, nous nous assurons que tout est correctement lié et que notre API fonctionne correctement.
-
 
 ### Http Server
 
@@ -305,11 +303,11 @@ Nous avons exécuté le conteneur Docker avec les modifications apportées à la
 
 **1. Choose an appropriate base image:**
 
-We'll start by selecting an appropriate base image for our HTTP server. In this case, we'll use the `httpd:2.4-alpine` image, which provides an Apache HTTP server.
+Nous avons commencé par sélectionner une image de base appropriée pour notre serveur HTTP. Dans ce cas, nous avons utilisé l'image `httpd:2.4-alpine`, qui fournit un serveur HTTP Apache.
 
 **2. Create a simple landing page: `index.html`**
 
-We'll create a simple HTML landing page named `index.html` and place it inside our container. Here's the content of the `index.html` file:
+Nous avons créee une pages html basique appelé `index.html` et l'avons placé à l'intérieur de notre conteneur. Voici le contenu de la page html : 
 
 ```html
 <!DOCTYPE html>
@@ -367,7 +365,7 @@ docker logs my-httpd-container
 #### Reverse Proxy
 **1. Retrieve the default configuration from the running container:**
 
-We can use `docker exec` to retrieve the default configuration file from the running container at `/usr/local/apache2/conf/httpd.conf`.
+Nous pouvons utiliser `docker exec` pour récupérer le fichier de configuration par défaut du conteneur en cours d'exécution dans `/usr/local/apache2/conf/httpd.conf`.
 
 ```bash
 docker exec -it my-httpd-container cat /usr/local/apache2/conf/httpd.conf
@@ -375,7 +373,7 @@ docker exec -it my-httpd-container cat /usr/local/apache2/conf/httpd.conf
 
 **2. Modify the default configuration:**
 
-Add the following configuration in  /usr/local/apache2/conf/httpd.conf to enable reverse proxy:
+Ajoutez la configuration suivante dans /usr/local/apache2/conf/httpd.conf pour activer le proxy inverse :
 
 ```apache
 
@@ -397,31 +395,28 @@ COPY httpd.conf /usr/local/apache2/conf/httpd.conf
 
 #### Tip: Why do we need a reverse proxy?
 
-A reverse proxy can be useful for several reasons, including:
+Un proxy inverse peut être utile pour plusieurs raisons, notamment
 
-- Serving front-end applications.
-- Configuring SSL termination.
-- Handling load balancing.
-
-#### Notes
-
-At this point, we have a working HTTP server serving a simple landing page, and we've configured it as a reverse proxy to forward requests to a backend application.
+- Servir des applications frontales.
+- Configuration de la terminaison SSL.
+- Gestion de l'équilibrage de la charge.
+  
 
 ### Docker-Compose Setup and Workflow
 
 #### Basics of Docker-Compose
 
-Docker-Compose is a tool that allows you to define and manage multi-container Docker applications. It uses a YAML file to configure the application’s services, networks, and volumes. In our case, we are using Docker-Compose to orchestrate the backend API, database, and HTTP server containers.
+Docker-Compose est un outil qui permet de définir et de gérer des applications Docker multi-conteneurs. Il utilise un fichier YAML pour configurer les services, les réseaux et les volumes de l'application. Dans notre cas, nous utilisons Docker-Compose pour orchestrer les conteneurs de l'API dorsale, de la base de données et du serveur HTTP.
 
 #### Setting Up Docker-Compose
 
 **1. Install Docker-Compose:**
 
-If the `docker-compose` command is not available on your system, you need to install Docker-Compose. Follow the installation instructions provided in the Docker documentation for your operating system.
+Si la commande `docker-compose` n'est pas disponible sur votre système, vous devez installer Docker-Compose. Suivez les instructions d'installation fournies dans la documentation Docker pour votre système d'exploitation.
 
 **2. Create `docker-compose.yml`:**
 
-We created a `docker-compose.yml` file to define our multi-container application. Below is the content of our Docker-Compose configuration:
+Nous avons créé un fichier `docker-compose.yml` pour définir notre application multi-conteneurs. Voici le contenu de notre configuration Docker-Compose :
 
 ```yaml
 version: '3.7'
@@ -429,7 +424,7 @@ version: '3.7'
 services:
   backend:
     build:
-      context: "C:\\Users\\Dell\\OneDrive - Fondation EPF\\Documents\\4A semestre 2 EPF\\DevOps\\backend api\\simple-api-student-main"
+      context: "C:\\Users\\Clément\\OneDrive - Fondation EPF\\4A\\Devops-main\\backend api\\simple-api-student-main"
     container_name: "simple-api-container-student2"
     networks:
       - app-network
@@ -444,7 +439,7 @@ services:
 
   database:
     build:
-      context: "C:\\Users\\Dell\\OneDrive - Fondation EPF\\Documents\\4A semestre 2 EPF\\DevOps\\postgres"
+      context: "C:\\Users\\Clément\\OneDrive - Fondation EPF\\4A\\Devops-main\\postgres"
     container_name: "mypostgres2"
     networks:
       - app-network
@@ -455,7 +450,7 @@ services:
 
   httpd:
     build:
-      context: "C:\\Users\\Dell\\OneDrive - Fondation EPF\\Documents\\4A semestre 2 EPF\\DevOps\\http"
+      context: "C:\\Users\\Clément\\OneDrive - Fondation EPF\\4A\\Devops-main\\http"
     ports:
       - "82:80"
     networks:
@@ -494,51 +489,50 @@ networks:
 
 #### Running the Application with Docker-Compose
 
-To start the application using Docker-Compose, run the following command:
-
+Pour démarrer l'application à l'aide de Docker-Compose, exécutez la commande suivante :
 ```bash
 docker-compose up
 ```
 
-This command will build and start all the services defined in the `docker-compose.yml` file.
+Cette commande va construire et démarrer tous les services définis dans le fichier `docker-compose.yml`.
 
 #### Publishing Docker Images to Docker Hub
 
 **1. Tag the Image:**
 
-For this we need a account dockerhub.
-To publish the Docker image to Docker Hub, we first tagged the image with a meaningful version:
+Pour cela, nous avons besoin d'un compte dockerhub.
+Pour publier l'image Docker sur Docker Hub, nous avons d'abord étiqueté l'image avec une version significative :
 
 ```bash
-docker tag devops-database justinesmmt/my-database:1.0
+docker tag devops-database cjassey/my-database:1.0
 ```
-"justinesmmt" is the account username.
+"cjassey" is the account username.
 "devops-database" is the name of the local Docker image you built earlier with dosker-compose.
 
 **2. Push the Image:**
 
-Next, we pushed the tagged image to Docker Hub:
+Ensuite, nous avons poussé l'image étiquetée vers Docker Hub :
 
 ```bash
-docker push justinesmmt/my-database:1.0
+docker push cjassey/my-database:1.0
 ```
 
-After pushing the image, it is available in the Docker Hub repository under our account.
+Après avoir poussé l'image, elle est disponible dans le dépôt Docker Hub sous notre compte.
 
 
 #### Documentation for Docker Hub
 
-It's important to provide documentation for your Docker images on Docker Hub. This documentation should include details about the image, usage instructions, and any relevant configuration information. This makes it easier for team members or others to use the images effectively.
+Il est important de fournir de la documentation pour vos images Docker sur Docker Hub. Cette documentation doit inclure des détails sur l'image, des instructions d'utilisation et toute information de configuration pertinente. Cela permet aux membres de l'équipe ou à d'autres personnes d'utiliser plus facilement les images de manière efficace.
 
 #### Why Use Docker-Compose?
 
-Docker-Compose simplifies the process of managing multi-container applications. It allows you to define, build, and run all services with a single command, making it easier to manage dependencies and configurations.
+Docker-Compose simplifie le processus de gestion des applications multi-conteneurs. Il vous permet de définir, de construire et d'exécuter tous les services à l'aide d'une seule commande, ce qui facilite la gestion des dépendances et des configurations.
 
 #### Why Publish Docker Images?
 
-Publishing Docker images to an online repository like Docker Hub makes it easy to share and distribute images. This allows team members to pull and run the images on their machines, ensuring consistency across different environments. It also facilitates continuous integration and deployment workflows.
+La publication d'images Docker dans un référentiel en ligne tel que Docker Hub facilite le partage et la distribution des images. Cela permet aux membres de l'équipe d'extraire et d'exécuter les images sur leurs machines, garantissant ainsi la cohérence entre les différents environnements. Cela facilite également l'intégration continue et les flux de travail de déploiement.
 
-By following these steps, we have successfully set up and managed a multi-container application using Docker-Compose, and published our Docker images to Docker Hub for easy distribution and use.
+En suivant ces étapes, nous avons réussi à mettre en place et à gérer une application multi-conteneurs à l'aide de Docker-Compose, et à publier nos images Docker sur Docker Hub pour en faciliter la distribution et l'utilisation.
 
 ### TP2 
 
@@ -567,7 +561,7 @@ By following these steps, we have successfully set up and managed a multi-contai
       ```
     - Add the remote repository:
       ```bash
-      git remote add origin https://github.com/justinesmmt/Devops.git
+      git remote add origin https://github.com/cjassey/Projet_DevOps.git
       ```
     - Push your project to the GitHub repository:
       ```bash
@@ -576,47 +570,47 @@ By following these steps, we have successfully set up and managed a multi-contai
 
 ### Detailed Instructions for Setting Up and Using Maven
 
-To build and test your Java application using Maven, follow these steps:
+Pour créer et tester votre application Java à l'aide de Maven, procédez comme suit :
 
 #### Step 1: Download and Install Maven
 
 1. **Download Maven**:
-   - Go to the [Maven download page](https://maven.apache.org/download.cgi).
-   - Download the latest binary zip archive (e.g., `apache-maven-3.9.7-bin.zip`).
-
+   - Allez sur la [page de téléchargement de Maven] (https://maven.apache.org/download.cgi).
+   - Téléchargez la dernière archive zip binaire (par exemple, `apache-maven-3.9.7-bin.zip`).
+   - 
 2. **Extract Maven**:
-   - Extract the downloaded zip file to a directory of your choice, for example, `C:\apache-maven-3.9.7`.
-
+   - Extrayez le fichier zip téléchargé dans un répertoire de votre choix, par exemple, `C:\N-apache-maven-3.9.7`.
+   - 
 3. **Set Up Environment Variables**:
-   - Add `C:\apache-maven-3.9.7\bin` to your system's `PATH` environment variable:
-     1. Open the **Start Menu** and search for "Environment Variables".
-     2. Select "Edit the system environment variables".
-     3. In the System Properties window, click on the **Environment Variables** button.
-     4. In the Environment Variables window, under **System variables**, find the `Path` variable and select it. Click **Edit**.
-     5. In the Edit Environment Variable dialog, click **New** and add the path to the Maven `bin` directory (`C:\apache-maven-3.9.7\bin`).
-     6. Click **OK** to close all dialogs.
-
+   - Ajoutez `C:\N-apache-maven-3.9.7\Nbin` à la variable d'environnement `PATH` de votre système :
+     1. Ouvrez le **Menu Démarrer** et recherchez « Variables d'environnement ».
+     2. Sélectionnez « Editer les variables d'environnement du système ».
+     3. Dans la fenêtre Propriétés du système, cliquez sur le bouton **Variables d'environnement**.
+     4. Dans la fenêtre Variables d'environnement, sous **Variables système**, recherchez la variable `Path` et sélectionnez-la. Cliquez sur **Editer**.
+     5. Dans la boîte de dialogue Edit Environment Variable, cliquez sur **New** et ajoutez le chemin vers le répertoire `bin` de Maven (`C:\Napache-maven-3.9.7\Nbin`).
+     6. Cliquez sur **OK** pour fermer toutes les boîtes de dialogue.
+     7. 
 4. **Verify Maven Installation**:
-   - Open a new command prompt and run:
+   - Ouvrez une nouvelle invite de commande et exécutez-la :
      ```bash
      mvn -v
      ```
-   - This should display the Maven version and other environment details, confirming that Maven is installed correctly.
+   - Cela devrait afficher la version de Maven et d'autres détails de l'environnement, confirmant que Maven est installé correctement.
 
 #### Step 2: Build and Test Your Application
 
 1. **Navigate to Your Project Directory**:
-   - Open a command prompt and change to the directory containing your `pom.xml` file:
+   - Ouvrez une invite de commande et allez dans le répertoire contenant votre fichier `pom.xml` :
      ```bash
      cd path\to\your\project
      ```
 
 2. **Run Maven Build and Tests**:
-   - Execute the following command to clean, build, and test your application:
+   - Exécutez la commande suivante pour nettoyer, construire et tester votre application :
      ```bash
      mvn clean verify
      ```
-   - If your `pom.xml` is not in the current directory, you can specify the path to it:
+   - Si votre `pom.xml` n'est pas dans le répertoire courant, vous pouvez spécifier le chemin vers celui-ci :
      ```bash
      mvn clean verify --file /path/to/pom.xml
      ```
@@ -624,30 +618,28 @@ To build and test your Java application using Maven, follow these steps:
 #### Explanation of `mvn clean verify`
 
 - **`mvn clean`**:
-  - This command removes all files generated by the previous build. This includes compiled classes, JAR files, and other build artifacts. Cleaning ensures that any remnants from previous builds are removed, preventing unexpected behavior due to stale artifacts.
+  - Cette commande supprime tous les fichiers générés par la compilation précédente. Cela inclut les classes compilées, les fichiers JAR et d'autres artefacts de compilation. Le nettoyage permet de s'assurer que tous les vestiges des constructions précédentes sont supprimés, ce qui permet d'éviter tout comportement inattendu dû à des artefacts périmés.
 
 - **`mvn verify`**:
-  - This command executes a full build of the project. It compiles the source code, processes resources, packages the compiled code into JARs or other artifacts, and runs the tests.
-  - **Unit Tests**: These are small, isolated tests that verify the functionality of individual units of code (e.g., methods or classes). They are usually fast and cover edge cases.
-  - **Integration Tests (Component Tests)**: These tests check the interactions between different parts of the application. They ensure that components work together as expected and often involve a larger scope, such as database interactions or external service calls.
+  - Cette commande exécute une compilation complète du projet. Elle compile le code source, traite les ressources, compile le code compilé dans des JAR ou d'autres artefacts et exécute les tests.
+  - **Unit Tests**: Il s'agit de petits tests isolés qui vérifient la fonctionnalité d'unités de code individuelles (par exemple, des méthodes ou des classes). Ils sont généralement rapides et couvrent les cas limites.
+  - **Integration Tests (Component Tests)**: Ces tests vérifient les interactions entre les différentes parties de l'application. Ils garantissent que les composants fonctionnent ensemble comme prévu et ont souvent une portée plus large, comme les interactions avec la base de données ou les appels de services externes.
 
 #### 1. What are Testcontainers?
 
-**Testcontainers** are Java libraries that allow developers to run Docker containers within their tests. They provide lightweight, throwaway instances of databases, message brokers, and other services, making integration testing more reliable and easier to set up. For example, in our project, we use the PostgreSQL Testcontainer to run a PostgreSQL instance during tests.
-
+**Testcontainers** sont des bibliothèques Java qui permettent aux développeurs d'exécuter des conteneurs Docker dans leurs tests. Elles fournissent des instances légères et jetables de bases de données, de courtiers de messages et d'autres services, ce qui rend les tests d'intégration plus fiables et plus faciles à mettre en place. Par exemple, dans notre projet, nous utilisons le PostgreSQL Testcontainer pour exécuter une instance PostgreSQL pendant les tests.
 
 
 #### 2. Setting Up Continuous Integration with GitHub Actions
 
 ##### Step 1: Create Your `main.yml` File
 
-First, create a `.github/workflows` directory in your project repository. This directory will contain the configuration files for GitHub Actions.
-
+Tout d'abord, créez un répertoire `.github/workflows` dans votre référentiel de projet. Ce répertoire contiendra les fichiers de configuration des Actions GitHub.
 ```plaintext
 mkdir -p .github/workflows
 ```
 
-Create a file named `main.yml` inside the `.github/workflows` directory with the following content:
+Créez un fichier nommé `main.yml` dans le répertoire `.github/workflows` avec le contenu suivant :
 
 ```yaml
 name: CI devops 2024
@@ -682,7 +674,7 @@ jobs:
 
 ##### Step 2: Verify CI Workflow on GitHub
 
-1. Push the `main.yml` file to your GitHub repository:
+1. Placez le fichier `main.yml` dans votre dépôt GitHub :
    
     ```bash
     git add .github/workflows/main.yml
@@ -690,8 +682,8 @@ jobs:
     git push origin main
     ```
 
-2. Go to the "Actions" tab in your GitHub repository. You should see your workflow running. If everything is set up correctly, the workflow will complete successfully, indicated by a green checkmark.
-
+2. Allez dans l'onglet « Actions » de votre dépôt GitHub. Vous devriez voir votre flux de travail s'exécuter. Si tout est configuré correctement, le flux de travail se terminera avec succès, indiqué par une coche verte.
+   
 ### Step-by-Step Guide: Setting Up Continuous Delivery with GitHub Actions and Docker Hub
 
 #### Adding Docker Hub Credentials to GitHub Secrets
@@ -940,8 +932,9 @@ Modify the Maven build step to include SonarCloud analysis:
 
 ```yaml
       - name: Build and test with Maven
-        run: mvn -B verify sonar:sonar -Dsonar.projectKey=devops-2024 -Dsonar.organization=devops-school -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}  --file ./simple-api/pom.xml
+        run: mvn -B verify sonar:sonar -Dsonar.projectKey=devops-cjassey_project-devops -Dsonar.organization=devops-cjassey -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}  --file pom.xml
         working-directory: ./backend api/simple-api-student-main
+
 ```
 
 ### Explanation
@@ -974,104 +967,7 @@ By following these steps, you have configured a CI/CD pipeline that:
 - Builds and pushes Docker images to Docker Hub on commits to the `main` branch.
 - Integrates SonarCloud for code quality analysis, ensuring a maintainable and secure codebase.
 
-## TD3
 
-## Introduction
-
-This guide will walk you through the installation and configuration of Ansible on a machine running Windows Linux Subsystem (WSL). You will learn how to use Ansible to manage and provision servers, as well as run simple commands to check the connectivity and configuration of your server.
-
-## Prerequisites
-
-1. **Windows Linux Subsystem (WSL)**: Ensure that WSL is installed and configured on your Windows machine.
-2. **Ansible**: We will install Ansible in WSL.
-3. **SSH Private Key**: You will need your private key to connect to your remote server.
-
-## Installation and Configuration Steps
-
-### 1. Install Ansible
-
-Start by installing Ansible in your WSL environment:
-
-```sh
-pip3 install ansible
-```
-
-### 2. Verify Ansible Installation
-
-Verify the installation by displaying the Ansible version:
-
-```sh
-ansible --version
-```
-
-### 3. Configure Private Key Permissions
-
-To use your private key, you need to restrict its permissions:
-
-```sh
-chmod 400 '/mnt/c/Users/Dell/OneDrive - Fondation EPF/documents/4a semestre 2 EPF/Devops/id_rsa'
-```
-
-### 4. Connect to the Remote Server via SSH
-
-Connect to your remote server using SSH and the private key:
-
-```sh
-cd ~/.ssh
-sudo chmod 400 id_rsa
-ssh -i id_rsa centos@justine.sammut.takima.cloud
-```
-
-After verifying the connection, you can exit the SSH session:
-
-```sh
-exit
-```
-
-### 5. Update and Install Packages on the Remote Server
-
-Once connected to your server, update the packages and install the necessary tools:
-
-```sh
-sudo yum update
-sudo yum install vim -y
-sudo yum install epel-release
-sudo yum install ansible
-```
-
-### 6. Configure Ansible Hosts
-
-Back in your WSL environment, create and edit the Ansible hosts file:
-
-```sh
-sudo vim /etc/ansible/hosts
-```
-
-Add your server to the `/etc/ansible/hosts` file:
-
-```sh
-justine.sammut.takima.cloud
-```
-
-### 7. Test Configuration with Ansible Ping Command
-
-Test the connection and Ansible configuration with the following command:
-
-```sh
-ansible all -m ping --private-key=~/.ssh/id_rsa -u centos
-```
-
-You should receive a response like:
-
-```json
-justine.sammut.takima.cloud | SUCCESS => {
-    "ansible_facts": {
-        "discovered_interpreter_python": "/usr/bin/python"
-    },
-    "changed": false,
-    "ping": "pong"
-}
-```
 
 ## TP3
 
@@ -1292,28 +1188,28 @@ Expected output:
 PLAY [all] **************************************************************************************************************************
 
 TASK [Install device-mapper-persistent-data] ****************************************************************************************
-changed: [justine.sammut.takima.cloud]
+changed: [clement.jassey.takima.cloud]
 
 TASK [Install lvm2] *****************************************************************************************************************
-changed: [justine.sammut.takima.cloud]
+changed: [clement.jassey.takima.cloud]
 
 TASK [Add Docker repository] ********************************************************************************************************
-changed: [justine.sammut.takima.cloud]
+changed: [clement.jassey.takima.cloud]
 
 TASK [Install Docker] ***************************************************************************************************************
-changed: [justine.sammut.takima.cloud]
+changed: [clement.jassey.takima.cloud]
 
 TASK [Install python3] **************************************************************************************************************
-changed: [justine.sammut.takima.cloud]
+changed: [clement.jassey.takima.cloud]
 
 TASK [Install Docker with Python 3] *************************************************************************************************
-changed: [justine.sammut.takima.cloud]
+changed: [clement.jassey.takima.cloud]
 
 TASK [Make sure Docker is running] **************************************************************************************************
-changed: [justine.sammut.takima.cloud]
+changed: [clement.jassey.takima.cloud]
 
 PLAY RECAP **************************************************************************************************************************
-justine.sammut.takima.cloud : ok=7    changed=7    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+clement.jassey.takima.cloud : ok=7    changed=7    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
 
 ### 3. Refactor Using Roles
@@ -1498,8 +1394,8 @@ The main playbook, `playbook.yml`, which includes all the roles:
 
 - name: Log in to Docker Hub
   docker_login:
-    username: justinesmmt
-    password: 9Xdqn4A55jj,,Ai
+    username: cjassey
+    password: password_dockerhub
     reauthorize: yes
 ```
 
@@ -1526,7 +1422,7 @@ The main playbook, `playbook.yml`, which includes all the roles:
 
 - name: Pull the BDD image
   docker_image:
-    name: justinesmmt/tp-devops-simple-api-database
+    name: cjassey/tp-devops-simple-api-database
     tag: latest
     source: pull
 
@@ -1534,7 +1430,7 @@ The main playbook, `playbook.yml`, which includes all the roles:
   docker_container:
     state: started
     name: mypostgres
-    image: justinesmmt/tp-devops-simple-api-database
+    image: cjassey/tp-devops-simple-api-database
     networks: 
       - name: "app-network"
 ```
@@ -1549,14 +1445,14 @@ The main playbook, `playbook.yml`, which includes all the roles:
 
 - name: Pull the API Image
   docker_image:
-    name: justinesmmt/tp-devops-simple-api-backend
+    name: cjassey/tp-devops-simple-api-backend
     tag: latest
     source: pull
 
 - name: Run API
   docker_container:
     name: simple-api-container-student2
-    image: justinesmmt/tp-devops-simple-api-backend:latest
+    image: cjassey/tp-devops-simple-api-backend:latest
     networks: 
       - name: "app-network"
     state: started
@@ -1572,14 +1468,14 @@ The main playbook, `playbook.yml`, which includes all the roles:
 
 - name: Pull the proxy container
   docker_image:
-    name: justinesmmt/tp-devops-simple-api-httpd
+    name: cjassey/tp-devops-simple-api-httpd
     tag: latest
     source: pull
  
 - name: Run the proxy container
   docker_container:
     name: httpd-1
-    image: justinesmmt/tp-devops-simple-api-httpd
+    image: cjassey/tp-devops-simple-api-httpd
     ports:
       - "80:80"
     networks:
@@ -1601,7 +1497,7 @@ Once the playbook runs successfully, verify the deployment by accessing the API 
 - Check the base endpoint:
 
   ```sh
-  http://justine.sammut.takima.cloud
+  http://clement.jassey.takima.cloud
   ```
 
   Expected response:
@@ -1616,7 +1512,7 @@ Once the playbook runs successfully, verify the deployment by accessing the API 
 - Check the departments endpoint:
 
   ```sh
-  http://justine.sammut.takima.cloud/departments/IRC/students
+  http://clement.jassey.takima.cloud/departments/IRC/students
   ```
 
   Expected response:
